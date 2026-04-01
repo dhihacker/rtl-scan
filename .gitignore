@@ -1,0 +1,19 @@
+# Build output
+build/
+
+# ImGui layout (user-specific)
+imgui.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Compile commands (optional, for IDE use)
+compile_commands.json
