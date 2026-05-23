@@ -1,0 +1,42 @@
+name: Build rtl-scan
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          librtlsdr-dev \
+          libfftw3-dev \
+          libglfw3-dev \
+          libgl-dev \
+          cmake \
+          build-essential
+
+    - name: Configure
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: |
+        cd build
+        make -j$(nproc)
+
+    - name: Upload binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: rtl-scan-linux
+        path: build/rtl-scan
