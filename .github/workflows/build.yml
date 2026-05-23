@@ -1,4 +1,4 @@
-name: Build rtl-scan
+name: Build rtl-scan (Windows)
 
 on:
   push:
@@ -6,37 +6,48 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build-windows:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y \
-          librtlsdr-dev \
-          libfftw3-dev \
-          libglfw3-dev \
-          libgl-dev \
-          cmake \
-          build-essential
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-rtl-sdr
+          mingw-w64-x86_64-fftw
+          mingw-w64-x86_64-glfw
 
-    - name: Configure
+    - name: Configure CMake
       run: |
-        mkdir build
+        mkdir -p build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
+        cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       run: |
         cd build
-        make -j$(nproc)
+        mingw32-make -j2
 
-    - name: Upload binary
+    - name: Collect DLLs
+      run: |
+        mkdir dist
+        cp build/*.exe dist/ || true
+        cp /mingw64/bin/*.dll dist/ || true
+
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: rtl-scan-linux
-        path: build/rtl-scan
+        name: rtl-scan-windows
+        path: dist
