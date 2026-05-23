@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
 
     defaults:
@@ -28,8 +28,9 @@ jobs:
           mingw-w64-x86_64-rtl-sdr
           mingw-w64-x86_64-fftw
           mingw-w64-x86_64-glfw
+          mingw-w64-x86_64-make
 
-    - name: Configure CMake
+    - name: Configure
       run: |
         mkdir -p build
         cd build
@@ -40,11 +41,15 @@ jobs:
         cd build
         mingw32-make -j2
 
-    - name: Collect DLLs
+    - name: Package
       run: |
         mkdir dist
         cp build/*.exe dist/ || true
-        cp /mingw64/bin/*.dll dist/ || true
+
+        # copy required DLLs (important for Windows)
+        cp /mingw64/bin/libfftw3f-3.dll dist/ || true
+        cp /mingw64/bin/librtlsdr.dll dist/ || true
+        cp /mingw64/bin/libglfw3.dll dist/ || true
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
